@@ -1,6 +1,6 @@
 -- modifiable variables
 local reactorSide = "back"
-local fluxgateSide = "right"
+local fluxgateSide = "left"
 
 local targetStrength = 50
 local maxTemperature = 8000
@@ -29,7 +29,7 @@ local inputfluxgate
 local ri
 
 -- last performed action
-local action = "None since reboot"
+local action = "Keine seit Neustart"
 local emergencyCharge = false
 local emergencyTemp = false
 
@@ -39,19 +39,19 @@ fluxgate = peripheral.wrap(fluxgateSide)
 reactor = peripheral.wrap(reactorSide)
 
 if monitor == null then
-	error("No valid monitor was found")
+	error("Kein gültiger Monitor gefunden")
 end
 
 if fluxgate == null then
-	error("No valid fluxgate was found")
+	error("Kein gültiges Fluxgate gefunden")
 end
 
 if reactor == null then
-	error("No valid reactor was found")
+	error("Kein gültiger Reaktor gefunden")
 end
 
 if inputfluxgate == null then
-	error("No valid flux gate was found")
+	error("Kein gültiges Fluxgate gefunden")
 end
 
 monX, monY = monitor.getSize()
@@ -175,7 +175,7 @@ function update()
     end
 
     for k, v in pairs (ri) do
-      print(k.. ": ".. v)
+      print(tostring(k).. ": ".. tostring(v))
     end
     print("Output Gate: ", fluxgate.getSignalLowFlow())
     print("Input Gate: ", inputfluxgate.getSignalLowFlow())
@@ -185,29 +185,29 @@ function update()
     local statusColor
     statusColor = colors.red
 
-    if ri.status == "online" or ri.status == "charged" then
+    if ri.status == "running" then
       statusColor = colors.green
     elseif ri.status == "offline" then
       statusColor = colors.gray
-    elseif ri.status == "charging" then
+    elseif ri.status == "warming_up" then
       statusColor = colors.orange
     end
 
-    f.draw_text_lr(mon, 2, 2, 1, "Reactor Status", string.upper(ri.status), colors.white, statusColor, colors.black)
+    f.draw_text_lr(mon, 2, 2, 1, "Reaktor Status", string.upper(ri.status), colors.white, statusColor, colors.black)
 
-    f.draw_text_lr(mon, 2, 4, 1, "Generation", f.format_int(ri.generationRate) .. " rf/t", colors.white, colors.lime, colors.black)
+    f.draw_text_lr(mon, 2, 4, 1, "Generiert", f.format_int(ri.generationRate) .. " rf/t", colors.white, colors.lime, colors.black)
 
     local tempColor = colors.red
     if ri.temperature <= 5000 then tempColor = colors.green end
     if ri.temperature >= 5000 and ri.temperature <= 6500 then tempColor = colors.orange end
-    f.draw_text_lr(mon, 2, 6, 1, "Temperature", f.format_int(ri.temperature) .. "C", colors.white, tempColor, colors.black)
+    f.draw_text_lr(mon, 2, 6, 1, "Temperatur", f.format_int(ri.temperature) .. "C", colors.white, tempColor, colors.black)
 
-    f.draw_text_lr(mon, 2, 7, 1, "Output Gate", f.format_int(fluxgate.getSignalLowFlow()) .. " rf/t", colors.white, colors.blue, colors.black)
+    f.draw_text_lr(mon, 2, 7, 1, "Flux Ausgang", f.format_int(fluxgate.getSignalLowFlow()) .. " rf/t", colors.white, colors.blue, colors.black)
 
     -- buttons
     drawButtons(8)
 
-    f.draw_text_lr(mon, 2, 9, 1, "Input Gate", f.format_int(inputfluxgate.getSignalLowFlow()) .. " rf/t", colors.white, colors.blue, colors.black)
+    f.draw_text_lr(mon, 2, 9, 1, "Flux Eingang", f.format_int(inputfluxgate.getSignalLowFlow()) .. " rf/t", colors.white, colors.blue, colors.black)
 
     if autoInputGate == 1 then
       f.draw_text(mon, 14, 10, "AU", colors.white, colors.gray)
@@ -219,7 +219,7 @@ function update()
     local satPercent
     satPercent = math.ceil(ri.energySaturation / ri.maxEnergySaturation * 10000)*.01
 
-    f.draw_text_lr(mon, 2, 11, 1, "Energy Saturation", satPercent .. "%", colors.white, colors.white, colors.black)
+    f.draw_text_lr(mon, 2, 11, 1, "Energiesättigung", satPercent .. "%", colors.white, colors.white, colors.black)
     f.progress_bar(mon, 2, 12, mon.X-2, satPercent, 100, colors.blue, colors.gray)
 
     local fieldPercent, fieldColor
@@ -230,9 +230,9 @@ function update()
     if fieldPercent < 50 and fieldPercent > 30 then fieldColor = colors.orange end
 
     if autoInputGate == 1 then 
-      f.draw_text_lr(mon, 2, 14, 1, "Field Strength T:" .. targetStrength, fieldPercent .. "%", colors.white, fieldColor, colors.black)
+      f.draw_text_lr(mon, 2, 14, 1, "Feldstärke T:" .. targetStrength, fieldPercent .. "%", colors.white, fieldColor, colors.black)
     else
-      f.draw_text_lr(mon, 2, 14, 1, "Field Strength", fieldPercent .. "%", colors.white, fieldColor, colors.black)
+      f.draw_text_lr(mon, 2, 14, 1, "Feldstärke", fieldPercent .. "%", colors.white, fieldColor, colors.black)
     end
     f.progress_bar(mon, 2, 15, mon.X-2, fieldPercent, 100, fieldColor, colors.gray)
 
@@ -245,10 +245,10 @@ function update()
     if fuelPercent >= 70 then fuelColor = colors.green end
     if fuelPercent < 70 and fuelPercent > 30 then fuelColor = colors.orange end
 
-    f.draw_text_lr(mon, 2, 17, 1, "Fuel ", fuelPercent .. "%", colors.white, fuelColor, colors.black)
+    f.draw_text_lr(mon, 2, 17, 1, "Treibstoff ", fuelPercent .. "%", colors.white, fuelColor, colors.black)
     f.progress_bar(mon, 2, 18, mon.X-2, fuelPercent, 100, fuelColor, colors.gray)
 
-    f.draw_text_lr(mon, 2, 19, 1, "Action ", action, colors.gray, colors.gray, colors.black)
+    f.draw_text_lr(mon, 2, 19, 1, "Meldungen ", action, colors.gray, colors.gray, colors.black)
 
     -- actual reactor interaction
     --
@@ -256,8 +256,8 @@ function update()
       reactor.chargeReactor()
     end
     
-    -- are we charging? open the floodgates
-    if ri.status == "charging" then
+    -- are we warming_up? open the floodgates
+    if ri.status == "warming_up" then
       inputfluxgate.setSignalLowFlow(900000)
       emergencyCharge = false
     end
@@ -269,16 +269,16 @@ function update()
     end
 
     -- are we charged? lets activate
-    if ri.status == "charged" and activateOnCharged == 1 then
+    if ri.status == "warming_up" and activateOnCharged == 1 then
       reactor.activateReactor()
     end
 
     -- are we on? regulate the input fludgate to our target field strength
     -- or set it to our saved setting since we are on manual
-    if ri.status == "online" then
+    if ri.status == "running" then
       if autoInputGate == 1 then 
         fluxval = ri.fieldDrainRate / (1 - (targetStrength/100) )
-        print("Target Gate: ".. fluxval)
+        print("Ziel Fluxgate: ".. fluxval)
         inputfluxgate.setSignalLowFlow(fluxval)
       else
         inputfluxgate.setSignalLowFlow(curInputGate)
@@ -291,12 +291,12 @@ function update()
     -- out of fuel, kill it
     if fuelPercent <= 10 then
       reactor.stopReactor()
-      action = "Fuel below 10%, refuel"
+      action = "Treibstoff unter 10%, auffüllen"
     end
 
     -- field strength is too dangerous, kill and it try and charge it before it blows
-    if fieldPercent <= lowestFieldPercent and ri.status == "online" then
-      action = "Field Str < " ..lowestFieldPercent.."%"
+    if fieldPercent <= lowestFieldPercent and ri.status == "running" then
+      action = "Feldstärke < " ..lowestFieldPercent.."%"
       reactor.stopReactor()
       reactor.chargeReactor()
       emergencyCharge = true
